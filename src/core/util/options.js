@@ -272,11 +272,13 @@ export function validateComponentName (name: string) {
  * Ensure all props option syntax are normalized into the
  * Object-based format.
  */
+//转化对象到统一的格式，默认属性type必须
 function normalizeProps (options: Object, vm: ?Component) {
   const props = options.props
   if (!props) return
   const res = {}
   let i, val, name
+  //如果是数组的必须是字符串，并且转化成对象的形式（把数组的值当成属性）
   if (Array.isArray(props)) {
     i = props.length
     while (i--) {
@@ -288,6 +290,7 @@ function normalizeProps (options: Object, vm: ?Component) {
         warn('props must be strings when using array syntax.')
       }
     }
+    //如果是普通对象，那么普通对象的值转化成对象的形式，本来就是对象就不动
   } else if (isPlainObject(props)) {
     for (const key in props) {
       val = props[key]
@@ -389,14 +392,17 @@ export function mergeOptions (
   }
   const options = {}
   let key
+  //把父辈的熟悉全部拷贝
   for (key in parent) {
     mergeField(key)
   }
+  //在父辈中不存在的属性拷贝
   for (key in child) {
     if (!hasOwn(parent, key)) {
       mergeField(key)
     }
   }
+  //合并属性，合并到options中
   function mergeField (key) {
     const strat = strats[key] || defaultStrat
     options[key] = strat(parent[key], child[key], vm, key)

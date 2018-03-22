@@ -94,8 +94,10 @@ export default class Watcher {
 
   /**
    * Evaluate the getter, and re-collect dependencies.
+   * 收集依赖，在创建的时候就收集一次
    */
   get () {
+  	//设置全局watcher
     pushTarget(this)
     let value
     const vm = this.vm
@@ -110,9 +112,11 @@ export default class Watcher {
     } finally {
       // "touch" every property so they are all tracked as
       // dependencies for deep watching
+      //深度收集依赖
       if (this.deep) {
         traverse(value)
       }
+      //结束当前的watcher
       popTarget()
       this.cleanupDeps()
     }
