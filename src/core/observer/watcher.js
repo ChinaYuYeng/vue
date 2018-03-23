@@ -94,6 +94,7 @@ export default class Watcher {
 
   /**
    * Evaluate the getter, and re-collect dependencies.
+   * 互相聊天，收集情报，准备删除好友
    */
   get () {
     pushTarget(this)
@@ -121,6 +122,7 @@ export default class Watcher {
 
   /**
    * Add a dependency to this directive.
+   * 请求添加好友，互留联系方式
    */
   addDep (dep: Dep) {
     const id = dep.id
@@ -135,6 +137,7 @@ export default class Watcher {
 
   /**
    * Clean up for dependency collection.
+   * 互相删除好友记录，除了又有新添加好友
    */
   cleanupDeps () {
     let i = this.deps.length
@@ -157,6 +160,7 @@ export default class Watcher {
   /**
    * Subscriber interface.
    * Will be called when a dependency changes.
+   * 这个方法最终直接或者延迟执行run
    */
   update () {
     /* istanbul ignore else */
@@ -212,6 +216,7 @@ export default class Watcher {
   /**
    * Depend on all deps collected by this watcher.
    */
+  //批量请求dep和watcher互相加好友
   depend () {
     let i = this.deps.length
     while (i--) {

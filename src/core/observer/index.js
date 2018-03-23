@@ -39,18 +39,20 @@ export class Observer {
   dep: Dep;
   vmCount: number; // number of vms that has this object as root $data
 
-  constructor (value: any) {
-    this.value = value
+  constructor (value: any) {//参数必须是对象，不能是简单类型
+    this.value = value  
     this.dep = new Dep()
     this.vmCount = 0
     def(value, '__ob__', this)
     if (Array.isArray(value)) {
+    	//监听数组
       const augment = hasProto
         ? protoAugment
         : copyAugment
       augment(value, arrayMethods, arrayKeys)
       this.observeArray(value)
     } else {
+    	//监听对象
       this.walk(value)
     }
   }
@@ -59,6 +61,7 @@ export class Observer {
    * Walk through each property and convert them into
    * getter/setters. This method should only be called when
    * value type is Object.
+   * 只有对象类型才执行，遍历对象
    */
   walk (obj: Object) {
     const keys = Object.keys(obj)
@@ -105,6 +108,7 @@ function copyAugment (target: Object, src: Object, keys: Array<string>) {
  * Attempt to create an observer instance for a value,
  * returns the new observer if successfully observed,
  * or the existing observer if the value already has one.
+ * 给对象创建观察者，或者直接返回已有的
  */
 export function observe (value: any, asRootData: ?boolean): Observer | void {
   if (!isObject(value) || value instanceof VNode) {
@@ -130,6 +134,7 @@ export function observe (value: any, asRootData: ?boolean): Observer | void {
 
 /**
  * Define a reactive property on an Object.
+ * 定义对象的每个属性的getter和setter
  */
 export function defineReactive (
   obj: Object,
@@ -184,6 +189,7 @@ export function defineReactive (
       } else {
         val = newVal
       }
+      //新进的对象，增加监听
       childOb = !shallow && observe(newVal)
       dep.notify()
     }
