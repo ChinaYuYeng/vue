@@ -2,6 +2,7 @@
 
 /**
  * Check if a string starts with $ or _
+ * 是否保留字
  */
 export function isReserved (str: string): boolean {
   const c = (str + '').charCodeAt(0)
