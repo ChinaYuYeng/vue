@@ -39,20 +39,20 @@ export class Observer {
   dep: Dep;
   vmCount: number; // number of vms that has this object as root $data
 
-  constructor (value: any) {//参数必须是对象，不能是简单类型
-    this.value = value  
+  constructor (value: any) {//进来的值必须是对象，因此被监听的对象或者数组（包括子对象或子数组）都有一个ob对象
+    this.value = value
     this.dep = new Dep()
     this.vmCount = 0
     def(value, '__ob__', this)
     if (Array.isArray(value)) {
-    	//监听数组
+    	//监听数组，更换poto
       const augment = hasProto
         ? protoAugment
         : copyAugment
       augment(value, arrayMethods, arrayKeys)
       this.observeArray(value)
     } else {
-    	//监听对象
+    	//遍历对象监听数据
       this.walk(value)
     }
   }
@@ -61,7 +61,7 @@ export class Observer {
    * Walk through each property and convert them into
    * getter/setters. This method should only be called when
    * value type is Object.
-   * 只有对象类型才执行，遍历对象
+   * 只有对象类型才执行，遍历对象监听属性
    */
   walk (obj: Object) {
     const keys = Object.keys(obj)
@@ -72,6 +72,7 @@ export class Observer {
 
   /**
    * Observe a list of Array items.
+   * 遍历数组每个元素，每个元素又从头开始
    */
   observeArray (items: Array<any>) {
     for (let i = 0, l = items.length; i < l; i++) {
@@ -85,6 +86,7 @@ export class Observer {
 /**
  * Augment an target Object or Array by intercepting
  * the prototype chain using __proto__
+ * 使用poto方式监听数组
  */
 function protoAugment (target, src: Object, keys: any) {
   /* eslint-disable no-proto */
@@ -134,7 +136,9 @@ export function observe (value: any, asRootData: ?boolean): Observer | void {
 
 /**
  * Define a reactive property on an Object.
+
  * 定义对象的每个属性的getter和setter
+
  */
 export function defineReactive (
   obj: Object,
@@ -157,7 +161,9 @@ export function defineReactive (
   }
   const setter = property && property.set
 
+	//递归子对象
   let childOb = !shallow && observe(val)
+  
   Object.defineProperty(obj, key, {
     enumerable: true,
     configurable: true,
@@ -166,8 +172,10 @@ export function defineReactive (
       if (Dep.target) {
         dep.depend()
         if (childOb) {
+        	//这里收集的是数组的依赖，在数组的方法中会触发相应的notify，如果是对象的话，收集了也没触发的地方，对象的触发都通过定义setter
           childOb.dep.depend()
           if (Array.isArray(value)) {
+          	//这里是收集数组元素的依赖
             dependArray(value)
           }
         }
@@ -267,6 +275,7 @@ export function del (target: Array<any> | Object, key: any) {
 /**
  * Collect dependencies on array elements when the array is touched, since
  * we cannot intercept array element access like property getters.
+ * 收集数组每个元素的依赖，如果他有的话
  */
 function dependArray (value: Array<any>) {
   for (let e, i = 0, l = value.length; i < l; i++) {

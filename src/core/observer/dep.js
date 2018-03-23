@@ -19,6 +19,7 @@ export default class Dep {
     this.subs = []
   }
 
+//增加要notify的watcher
   addSub (sub: Watcher) {
     this.subs.push(sub)
   }
@@ -26,7 +27,8 @@ export default class Dep {
   removeSub (sub: Watcher) {
     remove(this.subs, sub)
   }
-
+	
+	//请求当前water保存自己
   depend () {
     if (Dep.target) {
       Dep.target.addDep(this)
@@ -48,6 +50,7 @@ export default class Dep {
 Dep.target = null
 const targetStack = []
 
+//设置全局watcher，每次只有一个是活跃的，也就是在栈里的第一个
 export function pushTarget (_target: ?Watcher) {
   if (Dep.target) targetStack.push(Dep.target)
   Dep.target = _target

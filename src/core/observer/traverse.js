@@ -16,6 +16,7 @@ export function traverse (val: any) {
   seenObjects.clear()
 }
 
+//触发对象的所有getter
 function _traverse (val: any, seen: SimpleSet) {
   let i, keys
   const isA = Array.isArray(val)
@@ -35,6 +36,7 @@ function _traverse (val: any, seen: SimpleSet) {
   } else {
     keys = Object.keys(val)
     i = keys.length
+    //在这里出发了getter，收集依赖
     while (i--) _traverse(val[keys[i]], seen)
   }
 }

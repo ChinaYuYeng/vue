@@ -94,9 +94,12 @@ export default class Watcher {
 
   /**
    * Evaluate the getter, and re-collect dependencies.
-   * 互相聊天，收集情报，准备删除好友
+
+   * 收集依赖，在创建的时候就收集一次
+
    */
   get () {
+  	//设置全局watcher
     pushTarget(this)
     let value
     const vm = this.vm
@@ -111,10 +114,13 @@ export default class Watcher {
     } finally {
       // "touch" every property so they are all tracked as
       // dependencies for deep watching
+      //深度收集依赖
       if (this.deep) {
         traverse(value)
       }
+      //结束当前的watcher
       popTarget()
+      //清理当前的依赖关系，删除旧的不用的
       this.cleanupDeps()
     }
     return value
@@ -137,7 +143,7 @@ export default class Watcher {
 
   /**
    * Clean up for dependency collection.
-   * 互相删除好友记录，除了又有新添加好友
+   * 删除旧的好友记录，用新添加的好友替换
    */
   cleanupDeps () {
     let i = this.deps.length
@@ -226,6 +232,7 @@ export default class Watcher {
 
   /**
    * Remove self from all dependencies' subscriber list.
+   * 销毁watcher，仅仅在vue实例被销毁
    */
   teardown () {
     if (this.active) {
