@@ -172,7 +172,8 @@ export function defineReactive (
       if (Dep.target) {
         dep.depend()
         if (childOb) {
-        	//这里收集的是数组的依赖，在数组的方法中会触发相应的notify，如果是对象的话，收集了也没触发的地方，对象的触发都通过定义setter
+        	//这里收集的是数组的依赖，在数组的方法中会触发相应的notify，
+        	//如果是对象的话，收集了也没触发的地方，因为对象的每个属性触都定义了setter和getter，二数组的元素不一定（简单类型，不会有）
           childOb.dep.depend()
           if (Array.isArray(value)) {
           	//这里是收集数组元素的依赖
