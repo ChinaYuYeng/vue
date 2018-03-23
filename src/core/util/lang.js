@@ -22,6 +22,8 @@ export function def (obj: Object, key: string, val: any, enumerable?: boolean) {
 
 /**
  * Parse simple path.
+ * 根据路径比如：a.b.c，获取对象
+ * obj{a{b{c:2}}}的值是2
  */
 const bailRE = /[^\w.$]/
 export function parsePath (path: string): any {
