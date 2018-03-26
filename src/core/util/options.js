@@ -24,6 +24,7 @@ import {
  * Option overwriting strategies are functions that handle
  * how to merge a parent option value and a child option
  * value into the final value.
+ * 配置合并选项策略
  */
 const strats = config.optionMergeStrategies
 
@@ -44,6 +45,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 /**
  * Helper that recursively merges two data objects together.
+ * 以to为主，to有的不覆盖
  */
 function mergeData (to: Object, from: ?Object): Object {
   if (!from) return to
@@ -54,8 +56,10 @@ function mergeData (to: Object, from: ?Object): Object {
     toVal = to[key]
     fromVal = from[key]
     if (!hasOwn(to, key)) {
+    	//如果to没有这key就加到to，并且增加观察者
       set(to, key, fromVal)
     } else if (isPlainObject(toVal) && isPlainObject(fromVal)) {
+    	//如果有，并且都是obj，那么递归
       mergeData(toVal, fromVal)
     }
   }
@@ -84,6 +88,7 @@ export function mergeDataOrFn (
     // check if parentVal is a function here because
     // it has to be a function to pass previous merges.
     return function mergedDataFn () {
+    		//合并到child
       return mergeData(
         typeof childVal === 'function' ? childVal.call(this, this) : childVal,
         typeof parentVal === 'function' ? parentVal.call(this, this) : parentVal
@@ -99,6 +104,7 @@ export function mergeDataOrFn (
         ? parentVal.call(vm, vm)
         : parentVal
       if (instanceData) {
+      	//合并到jinstance
         return mergeData(instanceData, defaultData)
       } else {
         return defaultData
@@ -107,6 +113,7 @@ export function mergeDataOrFn (
   }
 }
 
+//合并data属性的策略
 strats.data = function (
   parentVal: any,
   childVal: any,
@@ -131,6 +138,7 @@ strats.data = function (
 
 /**
  * Hooks and props are merged as arrays.
+ * 合并生命周期钩子，不是覆盖，返回数组依次调用
  */
 function mergeHook (
   parentVal: ?Array<Function>,
@@ -171,6 +179,7 @@ function mergeAssets (
   }
 }
 
+//合并 'component','directive','filter',或者覆盖前者
 ASSET_TYPES.forEach(function (type) {
   strats[type + 's'] = mergeAssets
 })
@@ -180,6 +189,7 @@ ASSET_TYPES.forEach(function (type) {
  *
  * Watchers hashes should not overwrite one
  * another, so we merge them as arrays.
+ * 合并同一个属性（被观察的属性）下的watcher，不是覆盖，放进数组依次执行
  */
 strats.watch = function (
   parentVal: ?Object,
@@ -213,6 +223,7 @@ strats.watch = function (
 
 /**
  * Other object hashes.
+ * 针对vm实例，props，methods，inject，computed选项的合并 ，实行的是后者覆盖前者
  */
 strats.props =
 strats.methods =
@@ -252,6 +263,7 @@ function checkComponents (options: Object) {
   }
 }
 
+//检查components属性的属性名
 export function validateComponentName (name: string) {
   if (!/^[a-zA-Z][\w-]*$/.test(name)) {
     warn(
@@ -311,6 +323,7 @@ function normalizeProps (options: Object, vm: ?Component) {
 
 /**
  * Normalize all injections into Object-based format
+ * 转换inject属性的格式，对象的形式
  */
 function normalizeInject (options: Object, vm: ?Component) {
   const inject = options.inject
@@ -338,6 +351,7 @@ function normalizeInject (options: Object, vm: ?Component) {
 
 /**
  * Normalize raw function directives into object format.
+ * 转换directive属性格式，对象形式
  */
 function normalizeDirectives (options: Object) {
   const dirs = options.directives
@@ -364,6 +378,7 @@ function assertObjectType (name: string, value: any, vm: ?Component) {
 /**
  * Merge two option objects into a new one.
  * Core utility used in both instantiation and inheritance.
+ * 合并所有选项 data,props,watcher,methods,computed ...
  */
 export function mergeOptions (
   parent: Object,
@@ -381,6 +396,7 @@ export function mergeOptions (
   normalizeProps(child, vm)
   normalizeInject(child, vm)
   normalizeDirectives(child)
+  //子类继承的类吗？？
   const extendsFrom = child.extends
   if (extendsFrom) {
     parent = mergeOptions(parent, extendsFrom, vm)
@@ -392,7 +408,7 @@ export function mergeOptions (
   }
   const options = {}
   let key
-  //把父辈的熟悉全部拷贝
+  //把父辈的属性全部拷贝
   for (key in parent) {
     mergeField(key)
   }
@@ -402,8 +418,9 @@ export function mergeOptions (
       mergeField(key)
     }
   }
-  //合并属性，合并到options中
+  //逐一调用data,props,watcher,methods,computed ... 前面指定的方法，合并父子
   function mergeField (key) {
+  	//没有定义相应放方法，使用默认的
     const strat = strats[key] || defaultStrat
     options[key] = strat(parent[key], child[key], vm, key)
   }

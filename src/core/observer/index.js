@@ -172,8 +172,8 @@ export function defineReactive (
       if (Dep.target) {
         dep.depend()
         if (childOb) {
-        	//这里收集的是数组的依赖，在数组的方法中会触发相应的notify，
-        	//如果是对象的话，收集了也没触发的地方，因为对象的每个属性触都定义了setter和getter，二数组的元素不一定（简单类型，不会有）
+        	//这里收集的是数组或者对象的依赖，在数组的方法中会触发相应的notify，
+        	//如果是对象的话，在set（line：213）方法里被notify，比如给对象增加了一个新属性
           childOb.dep.depend()
           if (Array.isArray(value)) {
           	//这里是收集数组元素的依赖
@@ -216,16 +216,19 @@ export function set (target: Array<any> | Object, key: any, val: any): any {
   ) {
     warn(`Cannot set reactive property on undefined, null, or primitive value: ${(target: any)}`)
   }
+  //如果是数组
   if (Array.isArray(target) && isValidArrayIndex(key)) {
     target.length = Math.max(target.length, key)
-    target.splice(key, 1, val)
+    target.splice(key, 1, val)//为什么不用target[key]？因为splice会notify通知watcher
     return val
   }
+  //如果已经有了，就直接返回值
   if (key in target && !(key in Object.prototype)) {
     target[key] = val
     return val
   }
   const ob = (target: any).__ob__
+  //vm实例，$data对象是不行的，建议直接在data里声明
   if (target._isVue || (ob && ob.vmCount)) {
     process.env.NODE_ENV !== 'production' && warn(
       'Avoid adding reactive properties to a Vue instance or its root $data ' +
@@ -238,12 +241,14 @@ export function set (target: Array<any> | Object, key: any, val: any): any {
     return val
   }
   defineReactive(ob.value, key, val)
+  //在这对象的ob的dep被触发,不是数组
   ob.dep.notify()
   return val
 }
 
 /**
  * Delete a property and trigger change if necessary.
+ * 和set方法相对
  */
 export function del (target: Array<any> | Object, key: any) {
   if (process.env.NODE_ENV !== 'production' &&
@@ -270,6 +275,7 @@ export function del (target: Array<any> | Object, key: any) {
   if (!ob) {
     return
   }
+  //只有对象的_ob_被触发，不是数组
   ob.dep.notify()
 }
 

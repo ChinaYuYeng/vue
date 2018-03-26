@@ -8,6 +8,7 @@ import { isIOS, isNative } from './env'
 const callbacks = []
 let pending = false
 
+//执行所有累计的回调函数
 function flushCallbacks () {
   pending = false
   const copies = callbacks.slice(0)
@@ -87,6 +88,7 @@ export function withMacroTask (fn: Function): Function {
   })
 }
 
+//把新的任务入栈，检查是否可以执行任务
 export function nextTick (cb?: Function, ctx?: Object) {
   let _resolve
   callbacks.push(() => {
@@ -109,6 +111,7 @@ export function nextTick (cb?: Function, ctx?: Object) {
     }
   }
   // $flow-disable-line
+  //在cb没设置的情况下，可以使用promise的then作为回调方法
   if (!cb && typeof Promise !== 'undefined') {
     return new Promise(resolve => {
       _resolve = resolve

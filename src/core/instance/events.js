@@ -111,6 +111,7 @@ export function eventsMixin (Vue: Class<Component>) {
     return vm
   }
 
+	//依次调用数组中的cb
   Vue.prototype.$emit = function (event: string): Component {
     const vm: Component = this
     if (process.env.NODE_ENV !== 'production') {
