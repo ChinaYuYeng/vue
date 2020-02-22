@@ -185,6 +185,7 @@ export default class Watcher {
    */
   run () {
     if (this.active) {
+      //每次触发watch都会重新收集一次依赖，以更新依赖关系，对于renderwatch来说就是重新渲染也是重新收集一次依赖
       const value = this.get()
       if (
         value !== this.value ||
